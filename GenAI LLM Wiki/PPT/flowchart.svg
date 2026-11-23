@@ -1,0 +1,314 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 1840" width="100%" height="100%" style="background-color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', 'Noto Sans TC', sans-serif;">
+  <defs>
+    <!-- Shadows -->
+    <filter id="card-shadow" x="-8%" y="-8%" width="116%" height="116%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.08" />
+    </filter>
+    <filter id="subgraph-shadow" x="-4%" y="-2%" width="108%" height="104%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#4f46e5" flood-opacity="0.06" />
+    </filter>
+    
+    <!-- Arrow Markers -->
+    <marker id="arrow" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#64748b" />
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#0284c7" />
+    </marker>
+    <marker id="arrow-green" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#16a34a" />
+    </marker>
+    <marker id="arrow-red" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#dc2626" />
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#8b5cf6" />
+    </marker>
+    <marker id="arrow-amber" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 9 5 L 0 9 z" fill="#d97706" />
+    </marker>
+  </defs>
+
+  <!-- ================= HEADER ================= -->
+  <g transform="translate(560, 50)" text-anchor="middle">
+    <text font-size="26" font-weight="800" fill="#0f172a">HTML 簡報製作 Graph 與逐頁 Loop 流程圖</text>
+    <text y="30" font-size="14" fill="#64748b">依據 AGENTS.md 規範之簡報製作、查證與驗收流程</text>
+  </g>
+
+  <!-- ================= 1. startNode ================= -->
+  <g transform="translate(430, 115)" filter="url(#card-shadow)">
+    <rect width="260" height="50" rx="25" fill="#0284c7" stroke="#0369a1" stroke-width="1.5" />
+    <text x="130" y="31" font-size="15" font-weight="700" fill="#ffffff" text-anchor="middle">收到簡報指令</text>
+  </g>
+
+  <!-- Link: startNode -> req -->
+  <path d="M 560 165 L 560 205" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- ================= 2. req ================= -->
+  <g transform="translate(370, 205)" filter="url(#card-shadow)">
+    <rect width="380" height="52" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+    <text x="190" y="32" font-size="15" font-weight="600" fill="#0f172a" text-anchor="middle">確認標題、受眾、時長、頁數與必含主題</text>
+  </g>
+
+  <!-- Link: req -> draft -->
+  <path d="M 560 257 L 560 295" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- ================= 3. draft ================= -->
+  <g id="node-draft" transform="translate(390, 295)" filter="url(#card-shadow)">
+    <rect width="340" height="52" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+    <text x="170" y="32" font-size="15" font-weight="600" fill="#0f172a" text-anchor="middle">讀取 Wiki 素材，擬定或修訂大綱</text>
+  </g>
+
+  <!-- Link: draft -> scope -->
+  <path d="M 560 347 L 560 385" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- ================= 4. scope (Diamond) ================= -->
+  <g transform="translate(560, 430)">
+    <polygon points="0,-45 190,0 0,45 -190,0" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#card-shadow)" />
+    <text x="0" y="5" font-size="14" font-weight="700" fill="#92400e" text-anchor="middle">大綱每個主題都有已收錄來源支撐？</text>
+  </g>
+
+  <!-- Branch: scope -- 否 -->
+  <path d="M 370 430 L 250 430 L 250 385" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)" />
+  <rect x="285" y="415" width="30" height="20" rx="4" fill="#fee2e2" />
+  <text x="300" y="429" font-size="12" font-weight="700" fill="#dc2626" text-anchor="middle">否</text>
+
+  <!-- ingest -->
+  <g transform="translate(120, 335)" filter="url(#card-shadow)">
+    <rect width="260" height="50" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" />
+    <text x="130" y="31" font-size="14" font-weight="600" fill="#991b1b" text-anchor="middle">補收錄來源，或縮小主題範圍</text>
+  </g>
+
+  <!-- Link: ingest -> draft -->
+  <path d="M 250 335 L 250 321 L 382 321" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)" />
+
+  <!-- Branch: scope -- 是 -->
+  <path d="M 560 475 L 560 515" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+  <rect x="568" y="483" width="30" height="20" rx="4" fill="#dcfce7" />
+  <text x="583" y="497" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">是</text>
+
+  <!-- ================= 5. queue ================= -->
+  <g transform="translate(420, 515)" filter="url(#card-shadow)">
+    <rect width="280" height="50" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+    <text x="140" y="31" font-size="15" font-weight="600" fill="#0f172a" text-anchor="middle">建立或更新待處理頁清單</text>
+  </g>
+
+  <!-- Link: queue -> pageLoop.pending -->
+  <path d="M 560 565 L 560 635" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- ============================================================== -->
+  <!-- SUBGRAPH: pageLoop                                             -->
+  <!-- ============================================================== -->
+  <g transform="translate(60, 595)">
+    <!-- Subgraph Boundary -->
+    <rect width="1000" height="885" rx="16" fill="#fdf4ff" fill-opacity="0.4" stroke="#a855f7" stroke-width="2" stroke-dasharray="6 6" filter="url(#subgraph-shadow)" />
+    
+    <!-- Subgraph Title -->
+    <rect x="30" y="-16" width="380" height="32" rx="16" fill="#9333ea" />
+    <text x="220" y="6" font-size="14" font-weight="800" fill="#ffffff" text-anchor="middle">逐頁製作與檢查（每頁最多返工 3 次）</text>
+
+    <!-- 6. pending (Diamond) -->
+    <g transform="translate(500, 65)">
+      <polygon points="0,-35 120,0 0,35 -120,0" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#card-shadow)" />
+      <text x="0" y="5" font-size="14" font-weight="700" fill="#92400e" text-anchor="middle">還有待處理頁？</text>
+    </g>
+
+    <!-- pending -- 有 -->
+    <path d="M 500 100 L 500 145" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+    <rect x="508" y="110" width="30" height="20" rx="4" fill="#dcfce7" />
+    <text x="523" y="124" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">有</text>
+
+    <!-- 7. pick -->
+    <g transform="translate(420, 145)" filter="url(#card-shadow)">
+      <rect width="160" height="46" rx="8" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5" />
+      <text x="80" y="28" font-size="15" font-weight="700" fill="#5b21b6" text-anchor="middle">取出下一頁</text>
+    </g>
+
+    <!-- pick -- 首次處理 -->
+    <path d="M 420 168 L 310 168 L 310 230" stroke="#0284c7" stroke-width="2" fill="none" marker-end="url(#arrow-blue)" />
+    <rect x="330" y="156" width="60" height="20" rx="4" fill="#e0f2fe" />
+    <text x="360" y="170" font-size="11" font-weight="700" fill="#0369a1" text-anchor="middle">首次處理</text>
+
+    <!-- 8. plan -->
+    <g transform="translate(160, 230)" filter="url(#card-shadow)">
+      <rect width="300" height="52" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+      <text x="150" y="32" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">規劃當頁的教學重點、圖示與來源</text>
+    </g>
+
+    <!-- plan -> evidence -->
+    <path d="M 310 282 L 310 325" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- 9. evidence (Diamond) -->
+    <g transform="translate(310, 370)">
+      <polygon points="0,-45 180,0 0,45 -180,0" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#card-shadow)" />
+      <text x="0" y="5" font-size="13" font-weight="700" fill="#92400e" text-anchor="middle">各項關鍵說法都能定位到已收錄來源？</text>
+    </g>
+
+    <!-- evidence -- 否 -->
+    <path d="M 490 370 L 560 370" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+    <rect x="508" y="356" width="30" height="20" rx="4" fill="#fee2e2" />
+    <text x="523" y="370" font-size="12" font-weight="700" fill="#dc2626" text-anchor="middle">否</text>
+
+    <!-- 10. gap -->
+    <g transform="translate(565, 345)" filter="url(#card-shadow)">
+      <rect width="250" height="50" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" />
+      <text x="125" y="31" font-size="14" font-weight="600" fill="#991b1b" text-anchor="middle">記錄缺口，補收錄或縮小主張</text>
+    </g>
+
+    <!-- evidence -- 是 -->
+    <path d="M 310 415 L 310 460" stroke="#16a34a" stroke-width="2" marker-end="url(#arrow-green)" />
+    <rect x="318" y="425" width="30" height="20" rx="4" fill="#dcfce7" />
+    <text x="333" y="439" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">是</text>
+
+    <!-- 11. build -->
+    <g transform="translate(210, 460)" filter="url(#card-shadow)">
+      <rect width="200" height="48" rx="8" fill="#ede9fe" stroke="#8b5cf6" stroke-width="1.5" />
+      <text x="100" y="30" font-size="15" font-weight="700" fill="#5b21b6" text-anchor="middle">生成單頁 HTML</text>
+    </g>
+
+    <!-- build -> review -->
+    <path d="M 310 508 L 310 545" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- 12. review (Diamond) -->
+    <g transform="translate(310, 585)">
+      <polygon points="0,-40 150,0 0,40 -150,0" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#card-shadow)" />
+      <text x="0" y="5" font-size="13" font-weight="700" fill="#92400e" text-anchor="middle">內容、版面與互動都通過？</text>
+    </g>
+
+    <!-- review -- 通過 -->
+    <path d="M 160 585 L 90 585 L 90 380" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+    <rect x="110" y="572" width="36" height="20" rx="4" fill="#dcfce7" />
+    <text x="128" y="586" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">通過</text>
+
+    <!-- 13. done -->
+    <g transform="translate(20, 330)" filter="url(#card-shadow)">
+      <rect width="180" height="48" rx="8" fill="#dcfce7" stroke="#16a34a" stroke-width="1.5" />
+      <text x="90" y="30" font-size="13" font-weight="700" fill="#15803d" text-anchor="middle">標記完成，保存返工次數</text>
+    </g>
+
+    <!-- done -> pending loop back -->
+    <path d="M 110 330 L 110 65 L 372 65" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+
+    <!-- review -- 需修正 -->
+    <path d="M 460 585 L 585 585" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+    <rect x="495" y="572" width="50" height="20" rx="4" fill="#fee2e2" />
+    <text x="520" y="586" font-size="12" font-weight="700" fill="#dc2626" text-anchor="middle">需修正</text>
+
+    <!-- 14. retry (Diamond) -->
+    <g id="node-retry" transform="translate(710, 585)">
+      <polygon points="0,-40 120,0 0,40 -120,0" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" filter="url(#card-shadow)" />
+      <text x="0" y="5" font-size="14" font-weight="700" fill="#991b1b" text-anchor="middle">本頁已返工 3 次？</text>
+    </g>
+
+    <!-- pick -- 既有頁需返工 -> retry -->
+    <path d="M 580 168 L 840 168 L 840 560 L 805 572" stroke="#ea580c" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+    <rect x="740" y="156" width="80" height="20" rx="4" fill="#ffedd5" />
+    <text x="780" y="170" font-size="11" font-weight="700" fill="#c2410c" text-anchor="middle">既有頁需返工</text>
+
+    <!-- gap -> retry -->
+    <path d="M 690 395 L 690 540" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+
+    <!-- retry -- 否，次數加 1 -> plan -->
+    <path d="M 710 545 L 710 256 L 468 256" stroke="#ea580c" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+    <rect x="718" y="475" width="85" height="20" rx="4" fill="#ffedd5" />
+    <text x="760" y="489" font-size="11" font-weight="700" fill="#c2410c" text-anchor="middle">否，次數加 1</text>
+
+    <!-- retry -- 是 -> fallback -->
+    <path d="M 710 625 L 710 665" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+    <rect x="718" y="632" width="30" height="20" rx="4" fill="#fee2e2" />
+    <text x="733" y="646" font-size="12" font-weight="700" fill="#dc2626" text-anchor="middle">是</text>
+
+    <!-- 15. fallback -->
+    <g transform="translate(560, 665)" filter="url(#card-shadow)">
+      <rect width="300" height="50" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" />
+      <text x="150" y="31" font-size="13" font-weight="600" fill="#9a3412" text-anchor="middle">簡化版面或略去問題內容，記錄限制</text>
+    </g>
+
+    <!-- fallback -> recheck -->
+    <path d="M 710 715 L 710 745" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+    <!-- 16. recheck -->
+    <g transform="translate(605, 745)" filter="url(#card-shadow)">
+      <rect width="210" height="46" rx="8" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" />
+      <text x="105" y="29" font-size="14" font-weight="600" fill="#0f172a" text-anchor="middle">逐頁檢查簡化結果</text>
+    </g>
+
+    <!-- recheck -- 通過 -> done -->
+    <path d="M 605 768 L 50 768 L 50 382" stroke="#16a34a" stroke-width="2" fill="none" marker-end="url(#arrow-green)" />
+    <rect x="420" y="756" width="36" height="20" rx="4" fill="#dcfce7" />
+    <text x="438" y="770" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">通過</text>
+
+    <!-- recheck -- 仍有問題 -> omit -->
+    <path d="M 710 791 L 710 820" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+    <rect x="718" y="796" width="60" height="20" rx="4" fill="#fee2e2" />
+    <text x="748" y="810" font-size="11" font-weight="700" fill="#dc2626" text-anchor="middle">仍有問題</text>
+
+    <!-- 17. omit -->
+    <g transform="translate(565, 820)" filter="url(#card-shadow)">
+      <rect width="290" height="50" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" />
+      <text x="145" y="31" font-size="13" font-weight="600" fill="#991b1b" text-anchor="middle">略去未通過的內容，記錄對大綱的影響</text>
+    </g>
+
+    <!-- omit -> pending loop back -->
+    <path d="M 855 845 L 960 845 L 960 65 L 628 65" stroke="#ea580c" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+  </g>
+
+  <!-- ================= Link: pending -> assemble (全部處理完畢) ================= -->
+  <path d="M 680 660 L 980 660 L 980 1515 L 730 1515" stroke="#0284c7" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)" />
+  <rect x="910" y="1050" width="85" height="24" rx="4" fill="#e0f2fe" stroke="#0284c7" />
+  <text x="952" y="1066" font-size="12" font-weight="800" fill="#0369a1" text-anchor="middle">全部處理完畢</text>
+
+  <!-- ================= 18. assemble ================= -->
+  <g transform="translate(390, 1490)" filter="url(#card-shadow)">
+    <rect width="340" height="52" rx="8" fill="#e0f2fe" stroke="#0284c7" stroke-width="1.5" />
+    <text x="170" y="32" font-size="15" font-weight="700" fill="#0369a1" text-anchor="middle">合併各頁，從頭播放並逐項驗收</text>
+  </g>
+
+  <!-- Link: assemble -> acceptance -->
+  <path d="M 560 1542 L 560 1585" stroke="#64748b" stroke-width="2" marker-end="url(#arrow)" />
+
+  <!-- ================= 19. acceptance (Diamond) ================= -->
+  <g transform="translate(560, 1625)">
+    <polygon points="0,-40 140,0 0,40 -140,0" fill="#fef3c7" stroke="#d97706" stroke-width="1.5" filter="url(#card-shadow)" />
+    <text x="0" y="5" font-size="14" font-weight="700" fill="#92400e" text-anchor="middle">整份簡報通過驗收？</text>
+  </g>
+
+  <!-- acceptance -- 章節需調整 -> preserve -->
+  <path d="M 420 1625 L 320 1625" stroke="#ea580c" stroke-width="2" marker-end="url(#arrow)" />
+  <rect x="330" y="1612" width="75" height="20" rx="4" fill="#ffedd5" />
+  <text x="367" y="1626" font-size="11" font-weight="700" fill="#c2410c" text-anchor="middle">章節需調整</text>
+
+  <!-- preserve -->
+  <g transform="translate(30, 1600)" filter="url(#card-shadow)">
+    <rect width="280" height="50" rx="8" fill="#ffedd5" stroke="#ea580c" stroke-width="1.5" />
+    <text x="140" y="31" font-size="12" font-weight="600" fill="#9a3412" text-anchor="middle">保留未受影響頁的完成狀態及各頁返工次數</text>
+  </g>
+
+  <!-- preserve -> draft loop back -->
+  <path d="M 170 1600 L 170 321 L 382 321" stroke="#ea580c" stroke-width="2" fill="none" marker-end="url(#arrow)" />
+
+  <!-- acceptance -- 單頁需修正 -> requeue -->
+  <path d="M 700 1625 L 775 1625" stroke="#dc2626" stroke-width="2" marker-end="url(#arrow-red)" />
+  <rect x="705" y="1612" width="65" height="20" rx="4" fill="#fee2e2" />
+  <text x="737" y="1626" font-size="11" font-weight="700" fill="#dc2626" text-anchor="middle">單頁需修正</text>
+
+  <!-- requeue -->
+  <g transform="translate(780, 1600)" filter="url(#card-shadow)">
+    <rect width="270" height="50" rx="8" fill="#fee2e2" stroke="#dc2626" stroke-width="1.5" />
+    <text x="135" y="31" font-size="13" font-weight="600" fill="#991b1b" text-anchor="middle">將問題頁放回清單，沿用原返工次數</text>
+  </g>
+
+  <!-- requeue -> pending loop back -->
+  <path d="M 915 1600 L 915 660 L 688 660" stroke="#dc2626" stroke-width="2" fill="none" marker-end="url(#arrow-red)" />
+
+  <!-- acceptance -- 通過 -> finish -->
+  <path d="M 560 1665 L 560 1715" stroke="#16a34a" stroke-width="2.5" marker-end="url(#arrow-green)" />
+  <rect x="568" y="1678" width="36" height="20" rx="4" fill="#dcfce7" />
+  <text x="586" y="1692" font-size="12" font-weight="700" fill="#16a34a" text-anchor="middle">通過</text>
+
+  <!-- ================= 20. finish ================= -->
+  <g transform="translate(420, 1715)" filter="url(#card-shadow)">
+    <rect width="280" height="54" rx="27" fill="#16a34a" stroke="#15803d" stroke-width="2" />
+    <text x="140" y="33" font-size="15" font-weight="800" fill="#ffffff" text-anchor="middle">將完整 HTML 簡報存入 PPT/</text>
+  </g>
+</svg>

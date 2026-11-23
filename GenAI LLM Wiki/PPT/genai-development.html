@@ -1,0 +1,1578 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GenAI 的發展脈絡：從序列注意力到多模態生成</title>
+  <style>
+    :root {
+      --bg-dark: #0a0e17;
+      --bg-card: #131b2e;
+      --bg-card-hover: #1a243d;
+      --border-color: #243252;
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-indigo: #6366f1;
+      --accent-purple: #8b5cf6;
+      --accent-emerald: #10b981;
+      --accent-amber: #f59e0b;
+      --accent-rose: #f43f5e;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      font-family: var(--font-family);
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Presentation Container (16:9 ratio) */
+    .deck-viewport {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      padding: 20px 20px 80px 20px;
+    }
+
+    .slide-stage {
+      width: 100%;
+      max-width: 1440px;
+      aspect-ratio: 16 / 9;
+      position: relative;
+      background: radial-gradient(circle at 50% 0%, #17233f 0%, #0c1220 70%, #070a12 100%);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 40px rgba(59, 130, 246, 0.1);
+      overflow: hidden;
+    }
+
+    /* Slide element */
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 44px 54px;
+      display: none;
+      flex-direction: column;
+      opacity: 0;
+      transform: translateY(12px) scale(0.99);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      overflow-y: auto;
+    }
+
+    .slide.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    /* Header & Badges */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 16px;
+    }
+
+    .slide-title-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .slide-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      width: fit-content;
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--accent-cyan);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+    }
+
+    .slide-title {
+      font-size: 1.85rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #ffffff 40%, #93c5fd 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .slide-sources {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.04);
+      padding: 6px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .slide-sources strong {
+      color: #cbd5e1;
+    }
+
+    /* Content Layouts */
+    .slide-body {
+      flex: 1;
+      display: grid;
+      gap: 24px;
+      min-height: 0;
+    }
+
+    .grid-2col {
+      grid-template-columns: 1.15fr 0.85fr;
+    }
+
+    .grid-equal {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .grid-3col {
+      grid-template-columns: repeat(3, 1fr);
+    }
+
+    .content-card {
+      background: rgba(19, 27, 46, 0.65);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .content-card h3 {
+      font-size: 1.12rem;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 8px;
+    }
+
+    .content-card p, .content-card li {
+      font-size: 0.93rem;
+      line-height: 1.6;
+      color: #cbd5e1;
+    }
+
+    .content-card ul, .content-card ol {
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .highlight-box {
+      background: rgba(59, 130, 246, 0.08);
+      border-left: 4px solid var(--accent-blue);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
+      color: #93c5fd;
+    }
+
+    .warning-box {
+      background: rgba(245, 158, 11, 0.08);
+      border-left: 4px solid var(--accent-amber);
+      padding: 10px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.88rem;
+      color: #fcd34d;
+    }
+
+    /* Interactive Diagrams & SVGs */
+    .diagram-container {
+      background: #090e1a;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .diagram-svg {
+      width: 100%;
+      height: auto;
+      max-height: 380px;
+    }
+
+    /* Tab Switcher */
+    .tab-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .tab-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active {
+      background: var(--accent-blue);
+      color: #ffffff;
+      border-color: var(--accent-blue);
+    }
+
+    /* Bottom Control Bar */
+    .control-dock {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 9999px;
+      padding: 8px 18px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+      z-index: 100;
+    }
+
+    .nav-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: all 0.2s;
+    }
+
+    .nav-btn:hover:not(:disabled) {
+      background: var(--accent-blue);
+      color: white;
+      transform: scale(1.05);
+    }
+
+    .nav-btn:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+
+    .page-indicator {
+      font-size: 0.88rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      color: #94a3b8;
+      min-width: 65px;
+      text-align: center;
+    }
+
+    .dots-container {
+      display: flex;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.2);
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .dot.active {
+      background: var(--accent-cyan);
+      width: 22px;
+      border-radius: 4px;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: var(--text-muted);
+      padding: 6px 12px;
+      border-radius: 9999px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s;
+    }
+
+    .action-btn:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text-main);
+    }
+
+    /* Drawer: Presenter Notes */
+    .notes-drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      width: 420px;
+      background: #0f172a;
+      border-left: 1px solid var(--border-color);
+      box-shadow: -10px 0 30px rgba(0, 0, 0, 0.6);
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 200;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      overflow-y: auto;
+    }
+
+    .notes-drawer.open {
+      transform: translateX(0);
+    }
+
+    .notes-drawer-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .notes-drawer-header h2 {
+      font-size: 1.15rem;
+      color: #38bdf8;
+    }
+
+    .close-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+
+    .note-section {
+      margin-bottom: 20px;
+    }
+
+    .note-section h4 {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #64748b;
+      margin-bottom: 8px;
+    }
+
+    .note-section p, .note-section li {
+      font-size: 0.9rem;
+      color: #cbd5e1;
+      line-height: 1.6;
+    }
+
+    /* Modal: Slide Navigator */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .overview-modal {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 960px;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 16px;
+      overflow-y: auto;
+      padding: 16px 0;
+    }
+
+    .overview-card {
+      background: #1e293b;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .overview-card:hover {
+      border-color: var(--accent-blue);
+      transform: translateY(-2px);
+      background: #24344d;
+    }
+
+    .overview-card.active {
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+    }
+
+    .overview-card .num {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+    }
+
+    .overview-card .name {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: #f1f5f9;
+      line-height: 1.35;
+    }
+
+    /* Specific Presentation Styling */
+    .cover-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100%;
+      text-align: center;
+      gap: 20px;
+    }
+
+    .cover-title {
+      font-size: 3.1rem;
+      font-weight: 900;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #ffffff 20%, #60a5fa 60%, #c084fc 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      max-width: 900px;
+    }
+
+    .cover-subtitle {
+      font-size: 1.3rem;
+      color: #94a3b8;
+      max-width: 750px;
+      line-height: 1.6;
+    }
+
+    .timeline-strip {
+      display: flex;
+      width: 100%;
+      max-width: 1050px;
+      margin-top: 30px;
+      position: relative;
+      justify-content: space-between;
+    }
+
+    .timeline-strip::before {
+      content: '';
+      position: absolute;
+      top: 24px;
+      left: 30px;
+      right: 30px;
+      height: 2px;
+      background: linear-gradient(90deg, #3b82f6, #8b5cf6, #10b981);
+      z-index: 0;
+    }
+
+    .timeline-node {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 170px;
+    }
+
+    .node-dot {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 2px solid var(--accent-blue);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      color: #60a5fa;
+      box-shadow: 0 0 16px rgba(59, 130, 246, 0.4);
+    }
+
+    .node-year {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .node-title {
+      font-size: 0.82rem;
+      color: #cbd5e1;
+      text-align: center;
+      line-height: 1.35;
+    }
+
+    /* Comparison Table in Slide 7 */
+    .matrix-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 6px;
+    }
+
+    .matrix-table th {
+      background: rgba(255, 255, 255, 0.06);
+      color: #93c5fd;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .matrix-table td {
+      padding: 12px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      color: #cbd5e1;
+      vertical-align: middle;
+    }
+
+    .matrix-table tr:hover {
+      background: rgba(59, 130, 246, 0.05);
+    }
+
+    .tag-model {
+      display: inline-block;
+      font-weight: 700;
+      font-size: 0.78rem;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #a5b4fc;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+
+    .tag-task {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 0.78rem;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(16, 185, 129, 0.15);
+      color: #6ee7b7;
+    }
+
+    /* Reference Cards in Slide 8 */
+    .paper-card {
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .paper-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .paper-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: #f8fafc;
+    }
+
+    .paper-arxiv {
+      font-family: monospace;
+      font-size: 0.75rem;
+      color: var(--accent-cyan);
+      background: rgba(6, 182, 212, 0.1);
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    .paper-meta {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .paper-role {
+      font-size: 0.82rem;
+      color: #93c5fd;
+      border-left: 2px solid var(--accent-blue);
+      padding-left: 8px;
+      margin-top: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Presentation Stage -->
+  <div class="deck-viewport">
+    <div class="slide-stage" id="slideStage">
+
+      <!-- ========================================== -->
+      <!-- SLIDE 1: 封面與全景導引 -->
+      <!-- ========================================== -->
+      <div class="slide active" id="slide-1" data-title="封面與發展全景導引">
+        <div class="cover-container">
+          <div class="slide-badge">生成式 AI 教學簡報備課 · 全景導讀</div>
+          <h1 class="cover-title">GenAI 的發展脈絡<br><span style="font-size: 2.2rem; font-weight: 600; color: #94a3b8;">從序列注意力到多模態生成</span></h1>
+          <p class="cover-subtitle">
+            梳理從 2017 到 2023 年生成式 AI 的架構躍遷：自注意力基礎、潛在擴散生圖、純 Transformer 骨幹統一，到跨模態大語言模型對齊。
+          </p>
+
+          <div class="timeline-strip">
+            <div class="timeline-node">
+              <div class="node-dot">2017</div>
+              <div class="node-year">Vaswani et al.</div>
+              <div class="node-title">Transformer<br>注意力機制奠基</div>
+            </div>
+            <div class="timeline-node">
+              <div class="node-dot">2021</div>
+              <div class="node-year">Rombach et al.</div>
+              <div class="node-title">潛在擴散模型 (LDM)<br>高解析影像生成</div>
+            </div>
+            <div class="timeline-node">
+              <div class="node-dot">2022</div>
+              <div class="node-year">Bao et al.</div>
+              <div class="node-title">U-ViT 骨幹統一<br>視覺去噪 Token 化</div>
+            </div>
+            <div class="timeline-node">
+              <div class="node-dot">2023</div>
+              <div class="node-year">Liu et al.</div>
+              <div class="node-title">EfficientViT<br>群組注意力與效率分流</div>
+            </div>
+            <div class="timeline-node">
+              <div class="node-dot">2023</div>
+              <div class="node-year">Xu et al.</div>
+              <div class="node-title">ELIXR 多模態對齊<br>視覺與凍結 LLM 結合</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 2: 基礎架構突破——Transformer 與自注意力機制 (2017) -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-2" data-title="Transformer 與自注意力機制 (2017)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">階段一 · 序列基石 (2017)</div>
+            <h2 class="slide-title">Transformer：自注意力奠定生成模型基石</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>Vaswani 等 (2017) §3, 圖 1–2</strong> | <span>條目：[[concept-transformer]]</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>核心原理與教學重點</h3>
+            <ul>
+              <li><strong>擺脫循環限制</strong>：傳統 RNN 需按順序逐步遞推，難以並行且難以捕捉長距離依賴；Transformer 完全以<strong>注意力機制（Attention Mechanism）</strong>建立全域詞元關聯。</li>
+              <li><strong>縮放點積注意力（Scaled Dot-Product Attention）</strong>：
+                <div class="highlight-box" style="margin: 6px 0; font-family: monospace; font-size: 0.95rem;">
+                  Attention(Q, K, V) = softmax( (Q K<sup>T</sup>) / &radic;d<sub>k</sub> ) V
+                </div>
+                以查詢（Q）與鍵（K）計算相似度權重，除以根號維度縮放以避免梯度消失，經 Softmax 正規化後加權值向量（V）。
+              </li>
+              <li><strong>多頭注意力（Multi-Head Attention）</strong>：將向量投影至多個不同的子空間各自計算，允許模型同時在語法、語義與結構多重維度捕捉上下文。</li>
+              <li><strong>自回歸解碼機制（Autoregressive Decoding）</strong>：解碼器利用遮罩自注意力（Masked Self-Attention）確保預測下一個 Token 時只能看先前已產生的詞元。</li>
+            </ul>
+            <div class="warning-box">
+              <strong>備課辨析</strong>：原始論文實驗以機器翻譯（WMT 14 英德/英法）為核心。其編碼器－解碼器（Encoder-Decoder）架構是 Transformer 的一種用法，後續 GPT 沿用解碼器、BERT 沿用編碼器。
+            </div>
+          </div>
+
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 480 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                </marker>
+              </defs>
+              <!-- Background Grid -->
+              <rect width="480" height="340" rx="8" fill="#0d1424"/>
+              
+              <!-- Encoder Block -->
+              <rect x="35" y="60" width="170" height="230" rx="8" fill="#1e293b" stroke="#3b82f6" stroke-width="1.5"/>
+              <text x="120" y="85" fill="#60a5fa" font-size="14" font-weight="bold" text-anchor="middle">編碼器 (Encoder)</text>
+              
+              <rect x="55" y="105" width="130" height="40" rx="4" fill="#172554" stroke="#60a5fa"/>
+              <text x="120" y="130" fill="#93c5fd" font-size="12" text-anchor="middle">多頭自注意力</text>
+              
+              <rect x="55" y="165" width="130" height="40" rx="4" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="120" y="190" fill="#c7d2fe" font-size="12" text-anchor="middle">前饋神經網路 (FFN)</text>
+              
+              <text x="120" y="270" fill="#94a3b8" font-size="11" text-anchor="middle">輸入詞元向量 + 位置編碼</text>
+
+              <!-- Decoder Block -->
+              <rect x="275" y="60" width="170" height="230" rx="8" fill="#1e293b" stroke="#8b5cf6" stroke-width="1.5"/>
+              <text x="360" y="85" fill="#c084fc" font-size="14" font-weight="bold" text-anchor="middle">解碼器 (Decoder)</text>
+
+              <rect x="295" y="100" width="130" height="34" rx="4" fill="#2e1065" stroke="#a855f7"/>
+              <text x="360" y="122" fill="#e9d5ff" font-size="11" text-anchor="middle">遮罩自注意力 (Masked)</text>
+
+              <rect x="295" y="145" width="130" height="34" rx="4" fill="#172554" stroke="#38bdf8"/>
+              <text x="360" y="167" fill="#bae6fd" font-size="11" text-anchor="middle">交叉注意力 (Cross-Attn)</text>
+
+              <rect x="295" y="190" width="130" height="34" rx="4" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="360" y="212" fill="#c7d2fe" font-size="11" text-anchor="middle">前饋網路 (FFN)</text>
+
+              <text x="360" y="270" fill="#94a3b8" font-size="11" text-anchor="middle">自回歸預測下一個 Token</text>
+
+              <!-- Cross connection arrow -->
+              <path d="M 205 125 L 250 125 L 250 162 L 295 162" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#arrow)"/>
+              <text x="250" y="150" fill="#38bdf8" font-size="10" text-anchor="middle">K, V</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 3: 視覺生成的典範轉移——潛在擴散模型 (LDM, 2021-2022) -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-3" data-title="潛在擴散模型 (LDM, 2021-2022)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">階段二 · 影像生成典範躍遷 (2021–2022)</div>
+            <h2 class="slide-title">從像素到潛在空間：潛在擴散模型 (LDM)</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>Rombach 等 (2022) §3.1–3.3, 圖 3</strong> | <span>條目：[[concept-diffusion]]</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>擴散生成與感知壓縮機制</h3>
+            <ul>
+              <li><strong>擴散模型本質</strong>：學習反轉將資料逐步添加高斯雜訊的過程；生成時從純隨機高斯雜訊出發，由去噪網路與取樣演算法迭代更新產出樣本。</li>
+              <li><strong>高解析度瓶頸與感知壓縮</strong>：直接在像素空間操作擴散模型計算成本巨大；LDM 先用預訓練自編碼器（Autoencoder）將影像壓縮進<strong>潛在空間（Latent Space &zwnj;&zwnj;<i>z</i>）</strong>，在此低維空間進行迭代去噪，完成後再解碼回高解析度像素。</li>
+              <li><strong>跨注意力條件注入（Cross-Attention）</strong>：
+                <div class="highlight-box">
+                  將文字提示（Prompt）經語言編碼器（如 CLIP / BERT）編碼後，以跨注意力機制注入去噪骨幹，實現靈活的「文字生圖（Text-to-Image）」控制。
+                </div>
+              </li>
+              <li><strong>多元生成任務</strong>：同一架構可廣泛支援文字生圖、影像修補（Inpainting）、超解析度（Super-Resolution）與影像編輯。</li>
+            </ul>
+            <div class="warning-box">
+              <strong>關鍵限制與權衡</strong>：壓縮倍率（Downsampling factor）直接影響細節保真度與計算成本；生成階段仍需執行多次去噪推論迭代。
+            </div>
+          </div>
+
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 500 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                </marker>
+              </defs>
+              <rect width="500" height="340" rx="8" fill="#0d1424"/>
+              
+              <!-- Pixel Space Box -->
+              <rect x="25" y="30" width="105" height="150" rx="6" fill="#1e293b" stroke="#64748b"/>
+              <text x="77" y="55" fill="#e2e8f0" font-size="12" font-weight="bold" text-anchor="middle">像素空間</text>
+              <rect x="42" y="70" width="70" height="70" rx="4" fill="#334155"/>
+              <text x="77" y="110" fill="#94a3b8" font-size="11" text-anchor="middle">影像 x</text>
+              <text x="77" y="165" fill="#64748b" font-size="10" text-anchor="middle">RGB (高維度)</text>
+
+              <!-- Encoder arrow -->
+              <path d="M 130 105 L 175 105" stroke="#38bdf8" stroke-width="2"/>
+              <text x="152" y="98" fill="#38bdf8" font-size="11" text-anchor="middle">&Epsilon;</text>
+
+              <!-- Latent Space Box -->
+              <rect x="180" y="30" width="185" height="150" rx="6" fill="#172554" stroke="#3b82f6" stroke-width="1.5"/>
+              <text x="272" y="55" fill="#93c5fd" font-size="12" font-weight="bold" text-anchor="middle">潛在空間 (Latent Space z)</text>
+              
+              <rect x="200" y="75" width="145" height="40" rx="4" fill="#1e3a8a" stroke="#60a5fa"/>
+              <text x="272" y="100" fill="#ffffff" font-size="11" text-anchor="middle">去噪骨幹 (U-Net)</text>
+              
+              <text x="272" y="145" fill="#93c5fd" font-size="10" text-anchor="middle">反覆去噪迭代 (z<sub>T</sub> &rarr; z<sub>0</sub>)</text>
+
+              <!-- Decoder arrow -->
+              <path d="M 365 105 L 410 105" stroke="#10b981" stroke-width="2"/>
+              <text x="387" y="98" fill="#10b981" font-size="11" text-anchor="middle">&Dscr;</text>
+
+              <!-- Decoded Output Box -->
+              <rect x="415" y="30" width="60" height="150" rx="6" fill="#064e3b" stroke="#10b981"/>
+              <text x="445" y="105" fill="#a7f3d0" font-size="11" font-weight="bold" text-anchor="middle">生成圖</text>
+
+              <!-- Conditioning block -->
+              <rect x="180" y="215" width="185" height="90" rx="6" fill="#2e1065" stroke="#8b5cf6"/>
+              <text x="272" y="240" fill="#d8b4fe" font-size="12" font-weight="bold" text-anchor="middle">條件機制 (Conditioning)</text>
+              <rect x="200" y="255" width="145" height="32" rx="4" fill="#3b0764"/>
+              <text x="272" y="276" fill="#e9d5ff" font-size="11" text-anchor="middle">文字 Prompt &rarr; CLIP 編碼</text>
+
+              <!-- Cross attention arrow to UNet -->
+              <path d="M 272 215 L 272 125" stroke="#c084fc" stroke-width="2" stroke-dasharray="4 4"/>
+              <text x="295" y="175" fill="#c084fc" font-size="10">跨注意力</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 4: 骨幹架構大一統——U-ViT (2022-2023) -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-4" data-title="U-ViT 骨幹大一統 (2022-2023)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">階段三 · 視覺去噪 Token 化 (2022–2023)</div>
+            <h2 class="slide-title">骨幹大一統：以 Vision Transformer 取代 U-Net (U-ViT)</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>Bao 等 (2023) §2–3, 圖 1</strong> | <span>條目：[[concept-transformer]], [[concept-diffusion]]</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>"All are Worth Words" 統一視角</h3>
+            <ul>
+              <li><strong>打破 CNN U-Net 壟斷</strong>：早期擴散模型普遍依賴卷積型 U-Net 作為去噪骨幹；U-ViT 證明<strong>純 Transformer</strong> 同樣能勝任去噪任務。</li>
+              <li><strong>統一 Token 表徵</strong>：
+                <div class="highlight-box">
+                  將「帶雜訊的影像 Patch」、「時間步 <i>t</i>」與「文字條件 <i>c</i>」全部統一轉換為 Token 序列，直接餵入 Vision Transformer 進行全局自注意力建模。
+                </div>
+              </li>
+              <li><strong>長跳接結構（Long Skip Connections）</strong>：
+                在淺層與深層 Transformer Block 之間引入長跳接（將淺層輸出與深層輸入相加），有效保留底層低階細節，加速擴散訓練收斂。
+              </li>
+              <li><strong>架構大一統的意義</strong>：確立了 Transformer 在自然語言、影像辨識與影像生成跨領域的通用地位。</li>
+            </ul>
+            <div class="warning-box">
+              <strong>實證數據邊界</strong>：論文報告 ImageNet 256&times;256 類別生成 FID 為 2.29，MS-COCO 文字生圖 FID 為 5.48；兩項指標來自不同評測基準，需在特定設定下客觀解讀。
+            </div>
+          </div>
+
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 500 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                </marker>
+              </defs>
+              <rect width="500" height="340" rx="8" fill="#0d1424"/>
+              
+              <!-- Input Sequence -->
+              <rect x="30" y="35" width="440" height="45" rx="6" fill="#1e293b" stroke="#475569"/>
+              <text x="250" y="52" fill="#94a3b8" font-size="11" text-anchor="middle">統一 Token 序列輸入</text>
+              <text x="75" y="70" fill="#38bdf8" font-size="11" font-weight="bold">時間步 t</text>
+              <text x="160" y="70" fill="#c084fc" font-size="11" font-weight="bold">文字條件 c</text>
+              <text x="270" y="70" fill="#34d399" font-size="11" font-weight="bold">影像 Patch 1</text>
+              <text x="365" y="70" fill="#34d399" font-size="11" font-weight="bold">影像 Patch 2...N</text>
+
+              <!-- Transformer Blocks -->
+              <!-- Block 1 Shallow -->
+              <rect x="60" y="115" width="160" height="42" rx="4" fill="#1e3a8a" stroke="#60a5fa"/>
+              <text x="140" y="141" fill="#ffffff" font-size="11" text-anchor="middle">淺層 ViT 區塊 1..M</text>
+
+              <!-- Middle Block -->
+              <rect x="170" y="185" width="160" height="42" rx="4" fill="#312e81" stroke="#818cf8"/>
+              <text x="250" y="211" fill="#ffffff" font-size="11" text-anchor="middle">中層 ViT 區塊</text>
+
+              <!-- Block Deep -->
+              <rect x="280" y="255" width="160" height="42" rx="4" fill="#1e3a8a" stroke="#60a5fa"/>
+              <text x="360" y="281" fill="#ffffff" font-size="11" text-anchor="middle">深層 ViT 區塊 (M+1)..N</text>
+
+              <!-- Feedforward paths -->
+              <path d="M 140 78 L 140 115" stroke="#94a3b8" stroke-width="2"/>
+              <path d="M 140 157 L 210 185" stroke="#94a3b8" stroke-width="2"/>
+              <path d="M 290 227 L 360 255" stroke="#94a3b8" stroke-width="2"/>
+
+              <!-- Long Skip Connection -->
+              <path d="M 220 136 C 350 136, 420 180, 420 255" stroke="#f59e0b" stroke-width="2.5" stroke-dasharray="4 4"/>
+              <rect x="330" y="160" width="125" height="24" rx="4" fill="#78350f"/>
+              <text x="392" y="176" fill="#fde68a" font-size="10" font-weight="bold" text-anchor="middle">長跳接 (Skip Connect)</text>
+
+              <!-- Output -->
+              <path d="M 360 297 L 360 325" stroke="#10b981" stroke-width="2"/>
+              <text x="360" y="335" fill="#34d399" font-size="11" font-weight="bold" text-anchor="middle">&darr; 預測雜訊噪聲 &epsilon;</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 5: 效率優化與多任務分流——EfficientViT (2023) -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-5" data-title="架構效率與多任務分流 (2023)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">階段四 · 架構效率與任務分工 (2023)</div>
+            <h2 class="slide-title">效率優化與多任務分流：EfficientViT 的啟示</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>Liu 等 (2023) §3.1, 圖 6, §4 表 2</strong> | <span>條目：[[concept-transformer]], [[synthesis-genai-model-roles]]</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>串接群組注意力與記憶體優化</h3>
+            <ul>
+              <li><strong>高頻寬記憶體瓶頸（Memory-Bound）</strong>：傳統自注意力機制的 Softmax 與巨量注意力圖（Attention Map）產生極高的記憶體存取成本（MAC），限制推論吞吐量。</li>
+              <li><strong>串接式群組注意力（Cascaded Group Attention）</strong>：
+                <div class="highlight-box">
+                  將特徵通道按注意力頭（Heads）拆解為不同子群，前一個注意力頭的輸出串接加到下一個頭的輸入中，在降低計算量的同時逐步增強特徵豐富度。
+                </div>
+              </li>
+              <li><strong>三明治式前饋網路佈局</strong>：單層自注意力搭配前後的前饋網路，在維持特徵表達力下最大化硬體執行效率。</li>
+              <li><strong>常見教學誤解釐清</strong>：
+                <div class="warning-box">
+                  <strong>看到 Transformer 就代表是生成模型？</strong><br>
+                  不！必須綜合檢視「輸入、訓練目標與輸出」。EfficientViT 主要任務是<strong>影像辨識與特徵提取（輸出分類標籤）</strong>，而 U-ViT 則是<strong>生成去噪（預測雜訊）</strong>。
+                </div>
+              </li>
+            </ul>
+          </div>
+
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 500 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                </marker>
+              </defs>
+              <rect width="500" height="340" rx="8" fill="#0d1424"/>
+              
+              <!-- Title -->
+              <text x="250" y="30" fill="#93c5fd" font-size="13" font-weight="bold" text-anchor="middle">串接式群組注意力 (Cascaded Group Attention)</text>
+
+              <!-- Input Feature X -->
+              <rect x="40" y="60" width="420" height="30" rx="4" fill="#1e293b" stroke="#3b82f6"/>
+              <text x="250" y="80" fill="#93c5fd" font-size="11" text-anchor="middle">輸入特徵圖 X (依通道切分為子群 X<sub>1</sub>, X<sub>2</sub>, X<sub>3</sub>)</text>
+
+              <!-- Group Head 1 -->
+              <rect x="50" y="120" width="115" height="110" rx="6" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="107" y="145" fill="#c7d2fe" font-size="11" font-weight="bold" text-anchor="middle">注意力頭 1</text>
+              <rect x="62" y="160" width="90" height="24" rx="3" fill="#312e81"/>
+              <text x="107" y="176" fill="#e0e7ff" font-size="10" text-anchor="middle">輸入: X<sub>1</sub></text>
+              <text x="107" y="215" fill="#a5b4fc" font-size="10" text-anchor="middle">輸出特徵 &Otilde;<sub>1</sub></text>
+
+              <!-- Group Head 2 -->
+              <rect x="195" y="120" width="115" height="110" rx="6" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="252" y="145" fill="#c7d2fe" font-size="11" font-weight="bold" text-anchor="middle">注意力頭 2</text>
+              <rect x="207" y="160" width="90" height="24" rx="3" fill="#312e81"/>
+              <text x="252" y="176" fill="#e0e7ff" font-size="10" text-anchor="middle">輸入: X<sub>2</sub> + &Otilde;<sub>1</sub></text>
+              <text x="252" y="215" fill="#a5b4fc" font-size="10" text-anchor="middle">輸出特徵 &Otilde;<sub>2</sub></text>
+
+              <!-- Group Head 3 -->
+              <rect x="340" y="120" width="115" height="110" rx="6" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="397" y="145" fill="#c7d2fe" font-size="11" font-weight="bold" text-anchor="middle">注意力頭 3</text>
+              <rect x="352" y="160" width="90" height="24" rx="3" fill="#312e81"/>
+              <text x="397" y="176" fill="#e0e7ff" font-size="10" text-anchor="middle">輸入: X<sub>3</sub> + &Otilde;<sub>2</sub></text>
+              <text x="397" y="215" fill="#a5b4fc" font-size="10" text-anchor="middle">輸出特徵 &Otilde;<sub>3</sub></text>
+
+              <!-- Cascade arrows -->
+              <path d="M 165 210 L 195 172" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+              <path d="M 310 210 L 340 172" stroke="#38bdf8" stroke-width="2" marker-end="url(#arrow)"/>
+
+              <!-- Bottom Concatenation -->
+              <rect x="40" y="265" width="420" height="40" rx="4" fill="#064e3b" stroke="#10b981"/>
+              <text x="250" y="290" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">特徵串聯合併 (Concat [&Otilde;<sub>1</sub>, &Otilde;<sub>2</sub>, &Otilde;<sub>3</sub>]) &rarr; 線性投影輸出</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 6: 跨模態整合與對齊——ELIXR 與大語言模型結合 (2023) -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-6" data-title="跨模態對齊與大語言模型結合 (2023)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">階段五 · 模態對齊與多模態推理 (2023)</div>
+            <h2 class="slide-title">影像與語言對齊：適配器架構與多模態問答</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>Xu 等 (2023) Methods, 圖 1, 表 5</strong> | <span>條目：[[concept-multimodal]]</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>適配器設計與凍結 LLM 協同</h3>
+            <ul>
+              <li><strong>跨模態語意鴻溝</strong>：影像由像素構成，文字由詞元構成；如何讓預訓練好的大語言模型（如 PaLM 2）理解視覺資訊？</li>
+              <li><strong>輕量適配器（Adapter）策略</strong>：
+                <div class="highlight-box">
+                  保持影像編碼器與大語言模型（LLM）權重完全<strong>凍結（Frozen）</strong>，僅訓練中間的適配器（Q-Former 與線性投影層），大幅節省微調成本並防止語言災難性遺忘。
+                </div>
+              </li>
+              <li><strong>ELIXR 雙階段對齊流程</strong>：
+                <ol style="margin-top: 6px;">
+                  <li><strong>第一階段</strong>：透過對比學習訓練 Q-Former，讓影像表示與放射報告文字表示在語意空間對齊。</li>
+                  <li><strong>第二階段</strong>：將 Q-Former 萃取的視覺特徵投影至 LLM 詞嵌入空間，作為「軟提示（Soft Prompts）」輸入 LLM。</li>
+                </ol>
+              </li>
+              <li><strong>任務輸出本質辨析</strong>：ELIXR-B 接受「胸部 X 光影像 + 臨床提問」，輸出<strong>文字解答</strong>（如 VQA 與報告診斷），本質仍是文字序列生成。</li>
+            </ul>
+            <div class="warning-box">
+              <strong>實證評測與限制</strong>：VQA-RAD 整體準確率為 58.7%（表 5）；作者在 Discussion 特別警示模型對提示詞敏感，並可能產出幻覺或過度自信。
+            </div>
+          </div>
+
+          <div class="diagram-container">
+            <svg class="diagram-svg" viewBox="0 0 500 340" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8"/>
+                </marker>
+              </defs>
+              <rect width="500" height="340" rx="8" fill="#0d1424"/>
+              
+              <!-- Input Image -->
+              <rect x="25" y="45" width="90" height="100" rx="6" fill="#1e293b" stroke="#64748b"/>
+              <text x="70" y="75" fill="#f1f5f9" font-size="11" font-weight="bold" text-anchor="middle">X 光影像</text>
+              <rect x="35" y="90" width="70" height="45" rx="3" fill="#334155"/>
+              <text x="70" y="117" fill="#94a3b8" font-size="10" text-anchor="middle">醫療影像輸入</text>
+
+              <!-- Vision Encoder -->
+              <path d="M 115 95 L 145 95" stroke="#38bdf8" stroke-width="2"/>
+              <rect x="145" y="55" width="100" height="80" rx="6" fill="#1e3a8a" stroke="#60a5fa"/>
+              <text x="195" y="85" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">影像編碼器</text>
+              <text x="195" y="110" fill="#93c5fd" font-size="10" text-anchor="middle">(凍結 Frozen)</text>
+
+              <!-- Adapter (Q-Former) -->
+              <path d="M 245 95 L 275 95" stroke="#38bdf8" stroke-width="2"/>
+              <rect x="275" y="45" width="100" height="100" rx="6" fill="#4c1d95" stroke="#a855f7" stroke-width="1.5"/>
+              <text x="325" y="75" fill="#f3e8ff" font-size="11" font-weight="bold" text-anchor="middle">Q-Former</text>
+              <text x="325" y="100" fill="#e9d5ff" font-size="10" text-anchor="middle">適配器 + 投影層</text>
+              <rect x="285" y="112" width="80" height="22" rx="3" fill="#581c87"/>
+              <text x="325" y="127" fill="#fde047" font-size="9" font-weight="bold" text-anchor="middle">&star; 可訓練階段</text>
+
+              <!-- LLM Block -->
+              <path d="M 375 95 L 405 95" stroke="#38bdf8" stroke-width="2"/>
+              <rect x="405" y="45" width="80" height="100" rx="6" fill="#1e1b4b" stroke="#818cf8"/>
+              <text x="445" y="75" fill="#ffffff" font-size="11" font-weight="bold" text-anchor="middle">PaLM 2</text>
+              <text x="445" y="100" fill="#c7d2fe" font-size="10" text-anchor="middle">大語言模型</text>
+              <text x="445" y="125" fill="#94a3b8" font-size="9" text-anchor="middle">(凍結 Frozen)</text>
+
+              <!-- Bottom Prompt Question -->
+              <rect x="145" y="180" width="230" height="45" rx="6" fill="#1e293b" stroke="#475569"/>
+              <text x="260" y="202" fill="#cbd5e1" font-size="11" text-anchor="middle">問題文字: "右肺葉是否有病灶？"</text>
+              <path d="M 375 202 L 445 202 L 445 145" stroke="#818cf8" stroke-width="2" stroke-dasharray="4 4"/>
+
+              <!-- Output Box -->
+              <rect x="40" y="260" width="420" height="55" rx="6" fill="#064e3b" stroke="#10b981"/>
+              <text x="250" y="283" fill="#a7f3d0" font-size="12" font-weight="bold" text-anchor="middle">&darr; 輸出文字答案 / 診斷報告</text>
+              <text x="250" y="303" fill="#d1fae5" font-size="11" text-anchor="middle">"顯示微幅浸潤，建議進一步電腦斷層掃描。" (VQA 正確率 58.7%)</text>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 7: 發展總整——任務角色、輸入輸出與關鍵挑戰 -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-7" data-title="任務矩陣與關鍵技術邊界 (綜合比較)">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">全景綜合 · 任務對照與技術限制</div>
+            <h2 class="slide-title">任務矩陣與實踐邊界：給模型什麼？它輸出什麼？</h2>
+          </div>
+          <div class="slide-sources">
+            <span>來源依據：</span>
+            <strong>[[synthesis-genai-model-roles]]</strong> | <span>五篇論文方法與限制章節</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-equal">
+          <div class="content-card">
+            <h3>核心模型任務輸入輸出對照</h3>
+            <p style="font-size: 0.85rem; color: #94a3b8;">以「給模型什麼，它回傳什麼」釐清技術本質：</p>
+            <table class="matrix-table">
+              <thead>
+                <tr>
+                  <th>模型架構</th>
+                  <th>代表性輸入</th>
+                  <th>代表性輸出</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><span class="tag-model">EfficientViT</span></td>
+                  <td>一張影像</td>
+                  <td><span class="tag-task">分類標籤 / 影像特徵</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag-model">原始 Transformer</span></td>
+                  <td>來源語言句子</td>
+                  <td><span class="tag-task">目標語言文字序列</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag-model">潛在擴散 (LDM)</span></td>
+                  <td>潛在雜訊 + 文字條件</td>
+                  <td><span class="tag-task">解碼後高解析影像</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag-model">U-ViT 骨幹</span></td>
+                  <td>雜訊區塊 + 時間步 + 條件</td>
+                  <td><span class="tag-task">噪聲預測值 &epsilon;</span></td>
+                </tr>
+                <tr>
+                  <td><span class="tag-model">ELIXR-B</span></td>
+                  <td>胸部 X 光 + 問題文字</td>
+                  <td><span class="tag-task">文字診斷答案 (VQA)</span></td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="highlight-box" style="margin-top: 10px;">
+              <strong>教學設計示例</strong>：向學生展示一張狗的照片：問「這是什麼動物？」由分類器回傳標籤；問「圖中有幾隻狗？」由圖文問答回傳文字；若給「草地上的黃金獵犬」要求生成照片，則是條件式影像生成。
+            </div>
+          </div>
+
+          <div class="content-card">
+            <h3>生成式 AI 發展的三大實踐邊界</h3>
+            <ul>
+              <li>
+                <strong style="color: #f87171;">1. 計算開銷與採樣延遲</strong>
+                <p>自回歸語言模型需要逐 Token 序列生成；擴散模型需要執行 20–50 步去噪迭代取樣。相較單次前向傳遞的分類模型，推論時間與硬體算力仍是最大成本門檻。</p>
+              </li>
+              <li>
+                <strong style="color: #fcd34d;">2. 幻覺 (Hallucination) 與可靠性</strong>
+                <p>無論是大語言模型的文字生成，或是 ELIXR 多模態醫療診斷，模型均存在過度自信與事實錯誤風險。生成結果必須透過嚴格查驗（如檢索增強 RAG 或專業審核）。</p>
+              </li>
+              <li>
+                <strong style="color: #38bdf8;">3. 模態表徵落差 (Modality Gap)</strong>
+                <p>視覺與文字在資訊密度與語意粒度上存在先天的表徵落差。適配器（Adapter）能完成對齊，但資訊壓縮與投影可能丟失細粒度臨床或視覺線索。</p>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- ========================================== -->
+      <!-- SLIDE 8: 總結、展望與文獻索引 -->
+      <!-- ========================================== -->
+      <div class="slide" id="slide-8" data-title="總結與備課文獻索引">
+        <div class="slide-header">
+          <div class="slide-title-wrap">
+            <div class="slide-badge">總結回顧 · 備課資料庫索引</div>
+            <h2 class="slide-title">總結與備課索引：GenAI 的核心演進軌跡</h2>
+          </div>
+          <div class="slide-sources">
+            <span>索引全庫：</span>
+            <strong>[[index|Wiki 索引]]</strong> | <span>五篇代表性論文</span>
+          </div>
+        </div>
+
+        <div class="slide-body grid-2col">
+          <div class="content-card">
+            <h3>GenAI 發展的四大躍升維度</h3>
+            <ul>
+              <li><strong>機制躍升（2017）</strong>：從局部遞推走向<strong>全域自注意力</strong>，確立了 Transformer 作為跨領域通用基礎骨幹。</li>
+              <li><strong>空間躍升（2021–2022）</strong>：從像素暴力計算走向<strong>潛在空間去噪</strong>，讓高解析度、高質感的跨模態影像生成得以普及。</li>
+              <li><strong>骨幹大同（2022–2023）</strong>：打破 CNN U-Net 限制，以 <strong>U-ViT</strong> 將影像 Patch、時間步與條件全面 Token 化，驗證純 Transformer 去噪能力。</li>
+              <li><strong>多模態融合（2023+）</strong>：以<strong>輕量適配器（Q-Former）</strong>跨越模態鴻溝，在凍結 LLM 與視覺編碼器基礎上實現複雜圖文問答。</li>
+            </ul>
+            <div class="highlight-box">
+              <strong>長期累積建議</strong>：隨新論文加入，優先以「輸入/輸出任務」與「骨幹 vs 適配器」架構歸納，持續擴充 Wiki 概念條目與教學整理。
+            </div>
+          </div>
+
+          <div class="content-card" style="gap: 10px; overflow-y: auto;">
+            <h3>關鍵論文來源索引 (可查證依據)</h3>
+            
+            <div class="paper-card">
+              <div class="paper-card-header">
+                <span class="paper-title">Attention Is All You Need</span>
+                <span class="paper-arxiv">1706.03762v7</span>
+              </div>
+              <div class="paper-meta">Vaswani et al. (2017) · 機器翻譯、自注意力架構</div>
+              <div class="paper-role">奠定當代 LLM 與序列生成基石</div>
+            </div>
+
+            <div class="paper-card">
+              <div class="paper-card-header">
+                <span class="paper-title">Latent Diffusion Models</span>
+                <span class="paper-arxiv">2112.10752v2</span>
+              </div>
+              <div class="paper-meta">Rombach et al. (2022) · 潛在空間去噪、跨注意力條件</div>
+              <div class="paper-role">開創高解析度文字生圖 (Stable Diffusion) 時代</div>
+            </div>
+
+            <div class="paper-card">
+              <div class="paper-card-header">
+                <span class="paper-title">All are Worth Words (U-ViT)</span>
+                <span class="paper-arxiv">2209.12152v4</span>
+              </div>
+              <div class="paper-meta">Bao et al. (2023) · 純 Transformer 去噪、長跳接</div>
+              <div class="paper-role">證明擴散模型骨幹可完全由 ViT 取代 U-Net</div>
+            </div>
+
+            <div class="paper-card">
+              <div class="paper-card-header">
+                <span class="paper-title">EfficientViT</span>
+                <span class="paper-arxiv">2305.07027v1</span>
+              </div>
+              <div class="paper-meta">Liu et al. (2023) · 串接式群組注意力、記憶體優化</div>
+              <div class="paper-role">辨識任務的架構輕量化與推論加速範例</div>
+            </div>
+
+            <div class="paper-card">
+              <div class="paper-card-header">
+                <span class="paper-title">ELIXR: X-ray Multimodal AI</span>
+                <span class="paper-arxiv">2308.01317v2</span>
+              </div>
+              <div class="paper-meta">Xu et al. (2023) · Q-Former 適配器、凍結 PaLM 2</div>
+              <div class="paper-role">醫療影像與大語言模型對齊，支援圖文問答</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Floating Control Dock -->
+  <div class="control-dock">
+    <button class="nav-btn" id="prevBtn" title="上一頁 (Left Arrow / PageUp)">&larr;</button>
+    <div class="page-indicator" id="pageIndicator">01 / 08</div>
+    <div class="dots-container" id="dotsContainer"></div>
+    <button class="nav-btn" id="nextBtn" title="下一頁 (Right Arrow / Space / PageDown)">&rarr;</button>
+    
+    <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.15); margin: 0 4px;"></div>
+    
+    <button class="action-btn" id="notesToggleBtn" title="備課講義與來源查證 (N)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>備課筆記</span>
+    </button>
+
+    <button class="action-btn" id="overviewToggleBtn" title="投影片總覽清單 (M)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      <span>總覽</span>
+    </button>
+
+    <button class="action-btn" id="fullscreenToggleBtn" title="全螢幕切換 (F)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>
+      <span>全螢幕</span>
+    </button>
+  </div>
+
+  <!-- Presenter Notes Drawer -->
+  <div class="notes-drawer" id="notesDrawer">
+    <div class="notes-drawer-header">
+      <h2>備課講稿與查證筆記</h2>
+      <button class="close-btn" id="closeNotesBtn">&times;</button>
+    </div>
+    <div id="notesContent">
+      <!-- Injected dynamically based on current slide -->
+    </div>
+  </div>
+
+  <!-- Slide Overview Modal -->
+  <div class="modal-backdrop" id="overviewModal">
+    <div class="overview-modal">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.2rem; color: #f8fafc;">投影片快速跳轉</h2>
+        <button class="close-btn" id="closeOverviewBtn">&times;</button>
+      </div>
+      <div class="overview-grid" id="overviewGrid">
+        <!-- Injected dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Script: Navigation, Notes & Interactivity -->
+  <script>
+    // Slide Notes data (tied to AGENTS.md requirements and exact citations)
+    const slideNotes = {
+      1: {
+        focus: "全景導入：讓學員建立 2017 到 2023 年生成式 AI 架構發展的整體時間地圖。",
+        keyQuestions: "GenAI 是如何在短短幾年間，從單純的序列文字生成演化成跨模態、高畫質圖像生成與多模態推理系統？",
+        citations: "Vaswani (2017), Rombach (2022), Bao (2023), Liu (2023), Xu (2023)；Wiki 條目：[[index]], [[synthesis-genai-model-roles]]",
+        teachingTips: "強調技術演進不是隨機爆發，而是沿著『表示能力 &rarr; 運算效率 &rarr; 跨模態對齊』的邏輯脈絡推進。"
+      },
+      2: {
+        focus: "Transformer 架構奠定當代所有生成模型的基石。解釋自注意力（Self-Attention）與縮放點積計算機制。",
+        keyQuestions: "為什麼傳統 RNN 無法勝任長文本生成？縮放點積注意力中的 Q、K、V 是如何協同計算關聯權重的？",
+        citations: "Vaswani et al. (2017) §3, 圖 1–2；Wiki 條目：[[concept-transformer]]",
+        teachingTips: "利用翻譯教學示例：解碼器在生成第 i 個詞時，同時參考來源句子編碼與已產生的前 i-1 個詞。提醒學生原始 Transformer 主要驗證機器翻譯，是 Seq2Seq 結構。"
+      },
+      3: {
+        focus: "潛在擴散模型（LDM）解決高解析度影像生成計算開銷難題的關鍵設計。",
+        keyQuestions: "為什麼直接在像素空間做擴散去噪代價極高？自編碼器如何將影像壓縮至潛在空間？跨注意力如何控制生圖？",
+        citations: "Rombach et al. (2022) §3.1–3.3, 圖 3；Wiki 條目：[[concept-diffusion]]",
+        teachingTips: "比喻：潛在空間去噪就像是在『濃縮的語意草稿』上反覆修潤，最後才交給解碼器放大輸出成高畫質像素，大幅降低了計算資源浪費。"
+      },
+      4: {
+        focus: "U-ViT 骨幹大一統：用純 Vision Transformer 取代傳統卷積 U-Net 作為去噪核心。",
+        keyQuestions: "擴散模型一定要用 CNN 嗎？Transformer 如何同時處理時間步、文字提示與帶雜訊的影像？",
+        citations: "Bao et al. (2023) §2–3, 圖 1；Wiki 條目：[[concept-transformer]], [[concept-diffusion]]",
+        teachingTips: "強調『All are Worth Words』概念：不管什麼資訊，只要切塊或投影成向量，在 Transformer 眼裡全都是 Token！長跳接（Skip connection）則解決了深層特徵丟失的問題。"
+      },
+      5: {
+        focus: "辨析 Transformer 的不同角色：生成模型 vs 辨識模型，並理解架構效率優化（EfficientViT）。",
+        keyQuestions: "看到 Transformer 架構就代表它在做生成嗎？串接式群組注意力如何降低記憶體頻寬開銷？",
+        citations: "Liu et al. (2023) §3.1, 圖 6, 表 2；Wiki 條目：[[concept-transformer]], [[synthesis-genai-model-roles]]",
+        teachingTips: "澄清常見誤解：模型的行為是由『輸入、訓練目標與輸出』共同決定的。EfficientViT 用於辨識特徵提取，U-ViT 用於去噪生成，兩者目標截然不同。"
+      },
+      6: {
+        focus: "多模態對齊與適配器架構：讓凍結的大語言模型（LLM）學會看圖並回答專業問題（ELIXR）。",
+        keyQuestions: "如何不用重新訓練萬億參數的大語言模型，就讓它具備專業影像判讀能力？適配器如何搭建模態橋樑？",
+        citations: "Xu et al. (2023) Methods, 圖 1, 表 5；Wiki 條目：[[concept-multimodal]]",
+        teachingTips: "說明凍結（Frozen）權重的重要性：節省龐大算力、避免語言能力災難性遺忘。同時叮嚀限制：VQA 準確率為 58.7%，多模態系統對提示敏感且存在幻覺風險。"
+      },
+      7: {
+        focus: "全景任務矩陣總結：從輸入與輸出看透生成式 AI 本質，並深入探討推論延遲、幻覺與模態落差三大挑戰。",
+        keyQuestions: "面對紛繁複雜的 AI 術語，如何透過『給什麼、出什麼』迅速看清其技術分類與邊界限制？",
+        citations: "Wiki 整理：[[synthesis-genai-model-roles]]、各論文限制與討論章節",
+        teachingTips: "引導學生做互動對比練習：同一張狗的照片，分類任務回傳標籤，圖文問答回傳回答，而文字生圖則是輸入提示生成照片。說明工程實踐中生成延遲與可靠性挑戰。"
+      },
+      8: {
+        focus: "備課資料庫索引與研究展望：提供完整的論文索引、arXiv 編號與 Wiki 條目雙向追溯指引。",
+        keyQuestions: "未來的教學與研究如何持續擴充此 Wiki 備課庫？各篇論文的原始依據在哪裡？",
+        citations: "Vaswani (1706.03762v7), Rombach (2112.10752v2), Bao (2209.12152v4), Liu (2305.07027v1), Xu (2308.01317v2)；Wiki [[index]]",
+        teachingTips: "鼓勵學員依據 AGENTS.md 規範，持續收錄新發表的頂會或 arXiv 論文，持續透過『一句話定義、流程、示例與限制』維護教學庫。"
+      }
+    };
+
+    let currentSlide = 1;
+    const totalSlides = 8;
+
+    const slides = document.querySelectorAll('.slide');
+    const pageIndicator = document.getElementById('pageIndicator');
+    const dotsContainer = document.getElementById('dotsContainer');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const notesDrawer = document.getElementById('notesDrawer');
+    const notesContent = document.getElementById('notesContent');
+    const notesToggleBtn = document.getElementById('notesToggleBtn');
+    const closeNotesBtn = document.getElementById('closeNotesBtn');
+    const overviewModal = document.getElementById('overviewModal');
+    const overviewGrid = document.getElementById('overviewGrid');
+    const overviewToggleBtn = document.getElementById('overviewToggleBtn');
+    const closeOverviewBtn = document.getElementById('closeOverviewBtn');
+    const fullscreenToggleBtn = document.getElementById('fullscreenToggleBtn');
+
+    // Initialize dots and overview items
+    function initUI() {
+      dotsContainer.innerHTML = '';
+      overviewGrid.innerHTML = '';
+
+      slides.forEach((slide, index) => {
+        const slideNum = index + 1;
+        const title = slide.getAttribute('data-title') || `第 ${slideNum} 頁`;
+
+        // Dots
+        const dot = document.createElement('div');
+        dot.className = `dot ${slideNum === 1 ? 'active' : ''}`;
+        dot.title = `跳至第 ${slideNum} 頁：${title}`;
+        dot.addEventListener('click', () => goToSlide(slideNum));
+        dotsContainer.appendChild(dot);
+
+        // Overview Card
+        const card = document.createElement('div');
+        card.className = `overview-card ${slideNum === 1 ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="num">PAGE 0${slideNum}</div>
+          <div class="name">${title}</div>
+        `;
+        card.addEventListener('click', () => {
+          goToSlide(slideNum);
+          closeOverview();
+        });
+        overviewGrid.appendChild(card);
+      });
+
+      updateNotes();
+    }
+
+    function goToSlide(n) {
+      if (n < 1 || n > totalSlides) return;
+
+      slides.forEach((s, idx) => {
+        s.classList.remove('active');
+        if (idx + 1 === n) {
+          s.classList.add('active');
+        }
+      });
+
+      currentSlide = n;
+
+      // Update indicator
+      pageIndicator.textContent = `0${currentSlide} / 0${totalSlides}`;
+
+      // Update nav buttons
+      prevBtn.disabled = currentSlide === 1;
+      nextBtn.disabled = currentSlide === totalSlides;
+
+      // Update dots
+      document.querySelectorAll('.dot').forEach((dot, idx) => {
+        dot.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      // Update overview cards
+      document.querySelectorAll('.overview-card').forEach((card, idx) => {
+        card.classList.toggle('active', idx + 1 === currentSlide);
+      });
+
+      updateNotes();
+    }
+
+    function updateNotes() {
+      const note = slideNotes[currentSlide];
+      if (!note) return;
+
+      notesContent.innerHTML = `
+        <div class="note-section">
+          <h4>當前頁面</h4>
+          <p style="font-weight: 700; color: #38bdf8;">${slides[currentSlide - 1].getAttribute('data-title')}</p>
+        </div>
+        <div class="note-section">
+          <h4>教學焦點</h4>
+          <p>${note.focus}</p>
+        </div>
+        <div class="note-section">
+          <h4>本頁回答的核心問題</h4>
+          <p>${note.keyQuestions}</p>
+        </div>
+        <div class="note-section">
+          <h4>文獻依據與 Wiki 來源</h4>
+          <p style="color: #6ee7b7; font-size: 0.85rem;">${note.citations}</p>
+        </div>
+        <div class="note-section">
+          <h4>課堂教學叮嚀與誤解防範</h4>
+          <p style="background: rgba(255,255,255,0.04); padding: 10px; border-radius: 6px;">${note.teachingTips}</p>
+        </div>
+      `;
+    }
+
+    // Modal & Drawer toggles
+    function toggleNotes() {
+      notesDrawer.classList.toggle('open');
+    }
+
+    function openOverview() {
+      overviewModal.classList.add('open');
+    }
+
+    function closeOverview() {
+      overviewModal.classList.remove('open');
+    }
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`全螢幕切換受限: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Event listeners
+    prevBtn.addEventListener('click', () => goToSlide(currentSlide - 1));
+    nextBtn.addEventListener('click', () => goToSlide(currentSlide + 1));
+    notesToggleBtn.addEventListener('click', toggleNotes);
+    closeNotesBtn.addEventListener('click', () => notesDrawer.classList.remove('open'));
+    overviewToggleBtn.addEventListener('click', openOverview);
+    closeOverviewBtn.addEventListener('click', closeOverview);
+    fullscreenToggleBtn.addEventListener('click', toggleFullscreen);
+
+    overviewModal.addEventListener('click', (e) => {
+      if (e.target === overviewModal) closeOverview();
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        goToSlide(currentSlide + 1);
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        goToSlide(currentSlide - 1);
+      } else if (e.key === 'Home') {
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        goToSlide(totalSlides);
+      } else if (e.key.toLowerCase() === 'n') {
+        toggleNotes();
+      } else if (e.key.toLowerCase() === 'm') {
+        if (overviewModal.classList.contains('open')) closeOverview();
+        else openOverview();
+      } else if (e.key.toLowerCase() === 'f') {
+        toggleFullscreen();
+      } else if (e.key === 'Escape') {
+        notesDrawer.classList.remove('open');
+        closeOverview();
+      }
+    });
+
+    // Initialize
+    initUI();
+  </script>
+</body>
+</html>
